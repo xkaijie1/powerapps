@@ -1,25 +1,31 @@
 from flask import Flask, request, jsonify
 import os
 import openai
-import pinecone
+from pinecone import Pinecone, ServerlessSpec
 
 # Initialize OpenAI API
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Initialize Pinecone
-pinecone.init(api_key="2a53c623-d3cd-47da-aac7-b535f80d60af", environment="us-east1-aws")
+# Initialize Pinecone using the new Pinecone class
+pc = Pinecone(
+    api_key=os.environ.get("PINECONE_API_KEY")  # Use your Pinecone API key from environment variables
+)
 
 # Create or use an existing Pinecone index
 index_name = "powerapps-index"
-if index_name not in pinecone.list_indexes():
-    pinecone.create_index(
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
         name=index_name,
         dimension=1536,  # This dimension is for the text-embedding-ada-002 model
-        metric="cosine"
+        metric="cosine",
+        spec=ServerlessSpec(
+            cloud="aws",
+            region="us-east1"  # Use the correct region for your deployment
+        )
     )
 
 # Connect to the index
-index = pinecone.Index(index_name)
+index = pc.Index(index_name)
 
 # Initialize Flask app
 app = Flask(__name__)
