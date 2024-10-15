@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 import pinecone
 import os
 from pinecone import Pinecone, ServerlessSpec  # Import necessary Pinecone classes
@@ -7,7 +9,6 @@ from pinecone import Pinecone, ServerlessSpec  # Import necessary Pinecone class
 app = Flask(__name__)
 
 # Initialize OpenAI API
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Create a Pinecone client using the new syntax
 pc = Pinecone(
@@ -36,10 +37,8 @@ def handle_query():
     user_query = data.get('query', '')
 
     # Embed the query using OpenAI's embedding model
-    query_embedding = openai.Embedding.create(
-        input=user_query,
-        engine="text-embedding-ada-002"
-    )['data'][0]['embedding']
+    query_embedding = client.embeddings.create(input=user_query,
+    engine="text-embedding-ada-002")['data'][0]['embedding']
 
     # Query Pinecone to retrieve relevant vectors
     pinecone_response = index.query(
@@ -57,6 +56,6 @@ if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
     app.run(debug=True)
-    
+
 
 
