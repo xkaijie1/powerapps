@@ -2,22 +2,32 @@ from flask import Flask, request, jsonify
 import openai
 import pinecone
 import os
+from pinecone import Pinecone, ServerlessSpec  # Import necessary Pinecone classes
 
 app = Flask(__name__)
 
 # Initialize OpenAI API
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Initialize Pinecone with the new Pinecone client class
-pinecone_client = pinecone.PineconeClient(
+# Create a Pinecone client using the new syntax
+pc = Pinecone(
     api_key="2a53c623-d3cd-47da-aac7-b535f80d60af"
 )
 
-# Define the Pinecone index
-if "powerapps-index" not in pinecone_client.list_indexes():
-    pinecone_client.create_index(name="powerapps-index", dimension=1536)  # Example dimension
+# Check if the index exists, if not, create it
+if "powerapps-index" not in pc.list_indexes().names():
+    pc.create_index(
+        name="powerapps-index",
+        dimension=1536,
+        metric="cosine",
+        spec=ServerlessSpec(
+            cloud="aws",
+            region="us-east1"
+        )
+    )
 
-index = pinecone_client.index("powerapps-index")
+# Get the index for querying
+index = pc.Index("powerapps-index")
 
 # Endpoint to process a query from Power Automate
 @app.route('/query', methods=['POST'])
@@ -45,3 +55,4 @@ def handle_query():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
