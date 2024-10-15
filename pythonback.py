@@ -7,7 +7,7 @@ import pinecone
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize Pinecone
-pinecone.init(api_key="your-pinecone-api-key", environment="us-east1-gcp")
+pinecone.init(api_key="2a53c623-d3cd-47da-aac7-b535f80d60af", environment="us-east1-aws")
 
 # Create or use an existing Pinecone index
 index_name = "powerapps-index"
